@@ -1,5 +1,5 @@
 import "./App.css";
-
+import { useState, useEffect } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faPlay,
@@ -13,12 +13,35 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 library.add(faPlay, faSyncAlt, faPause, faLaptopCode, faCoffee);
 
 function App() {
+  const [session, setSession] = useState(10);
+  const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    let interval;
+
+    if (isActive) {
+      interval = setInterval(() => {
+        setSession((session) => session - 1);
+      }, 1000);
+    }
+
+    if (session <= 0) {
+      clearInterval(interval);
+      setIsActive(false);
+      console.log("Beep!");
+    }
+
+    return () => clearInterval(interval);
+  }, [isActive, session]);
+
   return (
     <div className="App">
-      <p id="title">Pomodoro Clock</p>
-      <div className="timer-wrapper">
+      <p id="title" class="animate">
+        Pomodoro Clock
+      </p>
+      <div className={`timer-wrapper ${isActive ? "fade" : ""}`}>
         <p id="timer-label">Session</p>
-        <p id="time-left">25:00</p>
+        <p id="time-left">{session}</p>
         <p>
           <span>
             <FontAwesomeIcon id="icon-timer" icon="laptop-code" />
@@ -28,13 +51,21 @@ function App() {
       </div>
 
       <div className="controls-wrapper">
+        <button id="start_stop" onClick={() => setIsActive(!isActive)}>
+          {isActive ? (
+            <FontAwesomeIcon icon="pause" />
+          ) : (
+            <FontAwesomeIcon icon="play" />
+          )}
+        </button>
         <FontAwesomeIcon
-          onClick={() => console.log("testing")}
-          id="start_stop"
-          icon="play"
+          id="reset"
+          icon="sync-alt"
+          onClick={() => {
+            setIsActive(false);
+            setSession(30);
+          }}
         />
-        {/* <FontAwesomeIcon icon="pause" /> */}
-        <FontAwesomeIcon id="reset" icon="sync-alt" />
       </div>
 
       <div className="length-wrapper">

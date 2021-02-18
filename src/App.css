@@ -77,11 +77,34 @@ body {
   justify-content: space-evenly;
 }
 
+.fade {
+  animation-name: fade-in-keyframes;
+  animation-duration: 0.5s;
+  animation-direction: alternate;
+  animation-iteration-count: infinite;
+}
+@keyframes fade-in-keyframes {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .controls-wrapper {
   margin: 2rem auto;
   width: 25%;
   display: flex;
   justify-content: space-around;
+}
+
+#start_stop {
+  padding: 0;
+  border: none;
+  background: none;
+  color: white;
+  outline: none;
 }
 
 #start_stop:hover,
