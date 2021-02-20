@@ -1,5 +1,5 @@
 import "./App.css";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faPlay,
@@ -13,15 +13,39 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 library.add(faPlay, faSyncAlt, faPause, faLaptopCode, faCoffee);
 
 function App() {
-  const audioElement = useRef(null);
-  const [intervalId, setIntervalId] = useState(null);
   const [displayTime, setDisplayTime] = useState(25 * 60);
   const [sessionTime, setSessionTime] = useState(25 * 60);
   const [breakTime, setBreakTime] = useState(5 * 60);
   const [timerOn, setTimerOn] = useState(false);
   const [onBreak, setOnBreak] = useState(false);
 
-  // Listen to the changes in break and session time and update the display time;
+  let beep = document.getElementById("beep");
+
+  useEffect(() => {
+    let interval;
+
+    if (timerOn) {
+      interval = setInterval(() => {
+        setDisplayTime((prev) => prev - 1);
+      }, 1000);
+    }
+
+    if (displayTime < 0) {
+      beep.pause();
+      beep.currentTime = 0;
+      beep.play();
+      if (!onBreak) {
+        setOnBreak(true);
+        setDisplayTime(breakTime);
+      } else {
+        setOnBreak(false);
+        setDisplayTime(sessionTime);
+      }
+    }
+
+    return () => clearInterval(interval);
+  }, [timerOn, displayTime, breakTime, sessionTime, onBreak]);
+
   useEffect(() => {
     if (onBreak) {
       setDisplayTime(breakTime);
@@ -30,40 +54,6 @@ function App() {
       setDisplayTime(sessionTime);
     }
   }, [sessionTime, breakTime]);
-
-  // listen to displaytime changes
-  // it it is zero, play the audio, change session to break or break to session
-  useEffect(() => {
-    if (displayTime === 0) {
-      audioElement.current.play();
-      if (!onBreak) {
-        setOnBreak(true);
-        setDisplayTime(breakTime);
-      } else if (onBreak) {
-        setOnBreak(false);
-        setDisplayTime(sessionTime);
-      }
-    }
-  }, [onBreak, sessionTime, breakTime, displayTime]);
-
-  const handleStartStopClick = () => {
-    setTimerOn(!timerOn);
-    if (timerOn) {
-      // if the timer is On:
-      // Stop the timer;
-      // clearInterval
-      clearInterval(intervalId);
-      setIntervalId(null);
-    } else {
-      // if the timer is Off:
-      // decrement displaytime by 1 every second (1000ms)
-      // store the id of the interval in a state to be used to clear the interval in the pause
-      const newIntervalId = setInterval(() => {
-        setDisplayTime((prev) => prev - 1);
-      }, 1000);
-      setIntervalId(newIntervalId);
-    }
-  };
 
   const formatTime = (time, type = "length") => {
     let minutes = Math.floor(time / 60);
@@ -101,14 +91,13 @@ function App() {
   };
 
   const resetTime = () => {
-    audioElement.current.load();
-    clearInterval(intervalId);
-    setIntervalId(null);
     setDisplayTime(25 * 60);
     setBreakTime(5 * 60);
     setSessionTime(25 * 60);
     setTimerOn(false);
     setOnBreak(false);
+    beep.pause();
+    beep.currentTime = 0;
   };
 
   return (
@@ -127,7 +116,7 @@ function App() {
       </div>
 
       <div className="controls-wrapper">
-        <button id="start_stop" onClick={handleStartStopClick}>
+        <button id="start_stop" onClick={() => setTimerOn(!timerOn)}>
           {timerOn ? (
             <FontAwesomeIcon icon="pause" />
           ) : (
@@ -153,7 +142,6 @@ function App() {
       </div>
       <audio
         id="beep"
-        ref={audioElement}
         src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"
       />
     </div>

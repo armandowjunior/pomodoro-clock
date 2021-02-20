@@ -119,10 +119,16 @@ body {
 
 .session-wrapper,
 .break-wrapper {
+  width: 50%;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-evenly;
   margin-bottom: 2rem;
+}
+
+#session-length,
+#break-length {
+  width: 2.5rem;
 }
 
 .length-wrapper button {
